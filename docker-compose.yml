@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+    coverage_microwave_mongo:
+        container_name: coverage-microwave-mongo
+        image: docker.io/mongo:latest
+        restart: always
+        volumes:
+            - ./mongo/db:/data/db
+        privileged: true
+        ports:
+            - 27018:27017
+        networks:
+            - coverage-network
+
+    coverage_microwave_node:
+        container_name: coverage-microwave-node
+        image: localhost/coverage-microwave-node
+        restart: always
+        build:
+            context: ./node
+            target: development # development or production
+        volumes:
+            - ./node:/usr/src/app
+            - /usr/src/app/node_modules
+        # Run in dev Mode: npm run start:dev or npm run start:debug
+        # Run in prod Mode: npm run start:prod
+        command: npm run start:dev
+        privileged: true
+        environment:
+            TZ: 'America/Lima'
+        networks:
+            - coverage-network
+        depends_on:
+            - coverage_microwave_mongo
+        ports:
+            - 5105:5000
+             # debugging port
+            - 9229:9229
+
+networks:
+    coverage-network:
+        name: coverage-network
+
+
